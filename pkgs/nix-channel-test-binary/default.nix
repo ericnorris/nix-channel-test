@@ -1,5 +1,12 @@
-{ writeShellScriptBin }:
+{ stdenv, fetchurl }: stdenv.mkDerivation {
+  name = "nix-channel-test-binary";
 
-writeShellScriptBin "nix-channel-test-binary" ''
-echo "Hello world from a nix channel"
-''
+  src = fetchurl {
+    url    = "mirror://gnu/hello/hello-2.3.tar.bz2";
+    sha256 = "0c7vijq8y68bpr7g6dh1gny0bff8qq81vnp4ch8pjzvg56wb3js1";
+  };
+
+  patchPhase = ''
+    sed -i 's/Hello, world!/Hello world from a nix channel/g' src/hello.c
+  '';
+}

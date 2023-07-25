@@ -6,7 +6,7 @@ let
   callPackage = nixpkgs.lib.callPackageWith (nixpkgs // pkgs);
 
   pkgs = {
-    nix-channel-test-binary = callPackage ./pkgs/nix-channel-test-binary {};
-    memcached               = callPackage ./pkgs/memcached {};
+    hello      = callPackage ./pkgs/hello {};
+    memcached  = callPackage ./pkgs/memcached {};
   };
 in pkgs

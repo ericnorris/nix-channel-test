@@ -1,5 +1,5 @@
 { stdenv, fetchurl }: stdenv.mkDerivation {
-  name = "nix-channel-test-binary";
+  name = "hello";
 
   src = fetchurl {
     url    = "mirror://gnu/hello/hello-2.3.tar.bz2";
@@ -7,6 +7,6 @@
   };
 
   patchPhase = ''
-    sed -i 's/Hello, world!/Hello world from a nix channel/g' src/hello.c
+    sed -i 's/Hello, world!/Hello world from a custom Nix channel/g' src/hello.c
   '';
 }

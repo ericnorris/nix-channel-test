@@ -6,24 +6,36 @@ on:
       - main
 
 jobs:
-  # x86_64:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
+  x86_64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 
-  #     - name: Install Nix
-  #       uses: DeterminateSystems/nix-installer-action@v4
-  #       with:
-  #         extra-conf: |
-  #           extra-substituters = s3://muck-intromit-lizard?endpoint=https://storage.googleapis.com
+      - name: Configure GCS S3-compatible credentials
+        run: |
+          # Set up the credentials for the current user
+          mkdir ~/.aws
 
-  #     - name: Install nix-eval-jobs
-  #       run:  nix profile install nixpkgs#nix-eval-jobs
+          cat << EOF > ~/.aws/credentials
+          [default]
+          aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          EOF
 
-  #     - run: ./build-and-publish-unchanged.sh
-  #       env:
-  #         AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID     }}
-  #         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          # Then copy the credentials to the root user for the nix daemon
+          sudo mkdir /root/.aws
+          sudo cp ~/.aws/credentials /root/.aws/credentials
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v4
+        with:
+          extra-conf: |
+            extra-substituters = s3://muck-intromit-lizard?endpoint=https://storage.googleapis.com
+
+      - name: Install nix-eval-jobs
+        run:  nix profile install nixpkgs#nix-eval-jobs
+
+      - run: ./build-and-publish-unchanged.sh
 
   aarch64:
     runs-on: ubuntu-latest
@@ -34,6 +46,21 @@ jobs:
         uses: docker/setup-qemu-action@v2
         with:
           platforms: arm64
+
+      - name: Configure GCS S3-compatible credentials
+        run: |
+          # Set up the credentials for the current user
+          mkdir ~/.aws
+
+          cat << EOF > ~/.aws/credentials
+          [default]
+          aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          EOF
+
+          # Then copy the credentials to the root user for the nix daemon
+          sudo mkdir /root/.aws
+          sudo cp ~/.aws/credentials /root/.aws/credentials
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v4
@@ -46,6 +73,3 @@ jobs:
         run:  nix profile install nixpkgs#nix-eval-jobs
 
       - run: ./build-and-publish-unchanged.sh --argstr system aarch64-linux
-        env:
-          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID     }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
